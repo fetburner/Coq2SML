@@ -346,13 +346,8 @@ and pp_function env t =
     | MLcase(Tglob(r,_),MLrel 1,pv) when
 	not (is_coinductive r) && get_record_fields r = [] &&
 	not (is_custom_match pv) ->
-	if not (ast_occurs 1 (MLcase(Tunknown,MLdummy,pv))) then
-	  pr_binding (List.rev (List.tl bl)) ++
-       	  str " = function" ++ fnl () ++
-	  v 0 (pp_pat env' pv)
-	else
           pr_binding (List.rev bl) ++
-          str " = match " ++ pr_id (List.hd bl) ++ str " with" ++ fnl () ++
+          str " = case " ++ pr_id (List.hd bl) ++ str " of" ++ fnl () ++
 	  v 0 (pp_pat env' pv)
     | _ ->
           pr_binding (List.rev bl) ++
@@ -364,7 +359,7 @@ and pp_function env t =
 
 and pp_fix par env i (ids,bl) args =
   pp_par par
-    (v 0 (str "let rec " ++
+    (v 0 (str "fun " ++
 	  prvect_with_sep
       	    (fun () -> fnl () ++ str "and ")
 	    (fun (fi,ti) -> pr_id fi ++ pp_function env ti)
@@ -397,7 +392,7 @@ let pp_Dfix (rv,c,t) =
 	in
 	(if init then mt () else fnl2 ()) ++
 	pp_val names.(i) t.(i) ++
-	str (if init then "let rec " else "and ") ++ names.(i) ++ def ++
+	str (if init then "fun " else "and ") ++ names.(i) ++ def ++
 	pp false (i+1)
   in pp true 0
 
@@ -536,7 +531,7 @@ let pp_decl = function
 	in
 	let name = pp_global Term r in
 	let postdef = if is_projection r then name else mt () in
-	pp_val name t ++ hov 0 (str "let " ++ name ++ def ++ postdef)
+	pp_val name t ++ hov 0 (str "val " ++ name ++ def ++ postdef)
     | Dfix (rv,defs,typs) ->
 	pp_Dfix (rv,defs,typs)
 
@@ -550,11 +545,11 @@ let pp_alias_decl ren = function
 	     str (ren^".") ++ name)
   | Dterm (r, a, t) ->
       let name = pp_global Term r in
-      hov 2 (str "let " ++ name ++ str (" = "^ren^".") ++ name)
+      hov 2 (str "val " ++ name ++ str (" = "^ren^".") ++ name)
   | Dfix (rv, _, _) ->
       prvecti (fun i r -> if is_inline_custom r then mt () else
 		 let name = pp_global Term r in
-		 hov 2 (str "let " ++ name ++ str (" = "^ren^".") ++ name) ++
+		 hov 2 (str "val " ++ name ++ str (" = "^ren^".") ++ name) ++
 		 fnl ())
 	rv
 

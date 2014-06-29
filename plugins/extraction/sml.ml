@@ -411,7 +411,7 @@ let pp_one_ind prefix ip_equiv pl name cnames ctyps =
   let pl = rename_tvars keywords pl in
   let pp_constructor i typs =
     (if i=0 then mt () else fnl ()) ++
-    hov 3 (str "| " ++ cnames.(i) ++
+    hov 3 ((if i = 0 then str "" else str "| ") ++ cnames.(i) ++
 	   (if typs = [] then mt () else str " of ") ++
 	   prlist_with_sep
 	    (fun () -> spc () ++ str "* ") (pp_type true pl) typs)
@@ -431,7 +431,7 @@ let pp_logical_ind packet =
 let pp_singleton kn packet =
   let name = pp_global Type (IndRef (kn,0)) in
   let l = rename_tvars keywords packet.ip_vars in
-  hov 2 (str "type " ++ pp_parameters l ++ name ++ str " =" ++ spc () ++
+  hov 2 (str "datatype " ++ pp_parameters l ++ name ++ str " =" ++ spc () ++
 	 pp_type false l (List.hd packet.ip_types.(0)) ++ fnl () ++
 	 pp_comment (str "singleton inductive, whose constructor was " ++
 		     pr_id packet.ip_consnames.(0)))
@@ -442,7 +442,7 @@ let pp_record kn fields ip_equiv packet =
   let fieldnames = pp_fields ind fields in
   let l = List.combine fieldnames packet.ip_types.(0) in
   let pl = rename_tvars keywords packet.ip_vars in
-  str "type " ++ pp_parameters pl ++ name ++
+  str "datatype " ++ pp_parameters pl ++ name ++
   pp_equiv pl name ip_equiv ++ str " = { "++
   hov 0 (prlist_with_sep (fun () -> str ";" ++ spc ())
 	   (fun (p,t) -> p ++ str " : " ++ pp_type true pl t) l)
@@ -457,7 +457,7 @@ let pp_coind pl name =
 let pp_ind co kn ind =
   let prefix = if co then "__" else "" in
   let some = ref false in
-  let init= ref (str "type ") in
+  let init= ref (str "datatype ") in
   let names =
     Array.mapi (fun i p -> if p.ip_logical then mt () else
 		  pp_global Type (IndRef (kn,i)))
@@ -520,7 +520,7 @@ let pp_decl = function
 	    if t = Taxiom then str "(* AXIOM TO BE REALIZED *)"
 	    else str "=" ++ spc () ++ pp_type false l t
 	in
-	hov 2 (str "type " ++ ids ++ name ++ spc () ++ def)
+	hov 2 (str "datatype " ++ ids ++ name ++ spc () ++ def)
     | Dterm (r, a, t) ->
 	let def =
 	  if is_custom r then str (" = " ^ find_custom r)
@@ -541,7 +541,7 @@ let pp_alias_decl ren = function
       let name = pp_global Type r in
       let l = rename_tvars keywords l in
       let ids = pp_parameters l in
-      hov 2 (str "type " ++ ids ++ name ++ str " =" ++ spc () ++ ids ++
+      hov 2 (str "datatype " ++ ids ++ name ++ str " =" ++ spc () ++ ids ++
 	     str (ren^".") ++ name)
   | Dterm (r, a, t) ->
       let name = pp_global Term r in
@@ -575,7 +575,7 @@ let pp_spec = function
 	    | Some Taxiom -> ids, str "(* AXIOM TO BE REALIZED *)"
 	    | Some t -> ids, str "=" ++ spc () ++ pp_type false l t
       in
-      hov 2 (str "type " ++ ids ++ name ++ spc () ++ def)
+      hov 2 (str "datatype " ++ ids ++ name ++ spc () ++ def)
 
 let pp_alias_spec ren = function
   | Sind (kn,i) -> pp_mind kn { i with ind_equiv = RenEquiv ren }
@@ -583,7 +583,7 @@ let pp_alias_spec ren = function
       let name = pp_global Type r in
       let l = rename_tvars keywords l in
       let ids = pp_parameters l in
-      hov 2 (str "type " ++ ids ++ name ++ str " =" ++ spc () ++ ids ++
+      hov 2 (str "datatype " ++ ids ++ name ++ str " =" ++ spc () ++ ids ++
 	     str (ren^".") ++ name)
   | Sval _ -> assert false
 

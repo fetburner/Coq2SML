@@ -32,8 +32,8 @@ let pp_tvar id =
 let pp_abst = function
   | [] -> mt ()
   | l  ->
-      str "fun " ++ prlist_with_sep (fun () -> str " ") pr_id l ++
-      str " ->" ++ spc ()
+      str "fn " ++ prlist_with_sep (fun () -> str " ") pr_id l ++
+      str " =>" ++ spc ()
 
 let pp_parameters l =
   (pp_boxed_tuple pp_tvar l ++ space_if (l<>[]))
@@ -196,7 +196,7 @@ let rec pp_expr par env args =
     | MLdummy ->
 	str "__" (* An [MLdummy] may be applied, but I don't really care. *)
     | MLmagic a ->
-	pp_apply (str "Obj.magic") par (pp_expr true env [] a :: args)
+	pp_apply (str "Unsafe.cast") par (pp_expr true env [] a :: args)
     | MLaxiom ->
 	pp_par par (str "failwith \"AXIOM TO BE REALIZED\"")
     | MLcons (_,r,a) as c ->

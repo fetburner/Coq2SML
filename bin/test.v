@@ -44,8 +44,11 @@ Proof.
     congruence.
 Qed.
 
+Definition dec l := fold_left (fun a b => 10 * a + b) l 0.
+
 Extraction Language Sml.
 Extraction tree.
 Extraction dfs.
 Extraction dfs_aux.
 Extraction dfs'.
+Extraction dec.

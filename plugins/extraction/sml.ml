@@ -256,7 +256,7 @@ let rec pp_expr par env args =
 	      with Not_found ->
 		(* Otherwise, standard match *)
 		apply2
-		  (v 0 (str "match " ++ head ++ str " with" ++ fnl () ++
+		  (v 0 (str "case " ++ head ++ str " of" ++ fnl () ++
 			pp_pat env pv))))
 
 and pp_record_proj par env typ t pv args =
@@ -335,8 +335,8 @@ and pp_pat env pv =
   prvecti
     (fun i x ->
        let s1,s2 = pp_one_pat env x in
-       hv 2 (hov 4 (str "| " ++ s1 ++ str " ->") ++ spc () ++ hov 2 s2) ++
-       if i = Array.length pv - 1 then mt () else fnl ())
+       hv 2 (hov 4 (s1 ++ str " =>") ++ spc () ++ hov 2 s2) ++
+       if i = Array.length pv - 1 then mt () else (str " |" ++ fnl ()))
     pv
 
 and pp_function env t =

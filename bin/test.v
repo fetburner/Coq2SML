@@ -48,6 +48,13 @@ Definition dec l := fold_left (fun a b => 10 * a + b) l 0.
 
 Extraction Language Sml.
 Extraction tree.
+Extract Inductive list => "list" ["[]" "(::)"].
+Extract Constant app => "fn x y => x @ y". 
+Extract Inductive nat => int ["0" "(fn n => n + 1)"]
+  "(fun fO fS n -> if n = 0 then fO () else fS (n-1))".
+Extract Constant fold_left => "List.foldl".
+Extract Constant plus => "fn x y => x + y".
+Extract Constant mult => "fn x y => x * y".
 Extraction dfs.
 Extraction dfs_aux.
 Extraction dfs'.

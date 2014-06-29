@@ -133,7 +133,7 @@ val optims :  unit -> opt_flag
 
 (*s Target language. *)
 
-type lang = Ocaml | Haskell | Scheme
+type lang = Ocaml | Haskell | Scheme | Sml
 val lang : unit -> lang
 
 (*s Extraction modes: modular or monolithic, library or minimal ?

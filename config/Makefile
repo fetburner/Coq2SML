@@ -24,8 +24,8 @@ COQTOOLSBYTEFLAGS=-custom
 # LIBDIR=path where the Coq library will reside
 # MANDIR=path where to install manual pages
 # EMACSDIR=path where to put Coq's Emacs mode (coq.el)
-BINDIR="/usr/local/bin"
-COQLIBINSTALL="/usr/local/lib/coq"
+BINDIR="/Users/Masayuki/Dropbox/coq/coq-8.4pl4/bin"
+COQLIBINSTALL="/Users/Masayuki/Dropbox/coq/coq-8.4pl4/"
 CONFIGDIR="/etc/xdg/coq"
 DATADIR="/usr/local/share/coq"
 MANDIR="/usr/local/share/man"
@@ -126,7 +126,7 @@ IDEOPTDEPS=
 IDEOPTINT=X11
 
 # Defining REVISION
-CHECKEDOUT=0
+CHECKEDOUT=git
 
 # Option to control compilation and installation of the documentation
 WITHDOC=no

@@ -6,6 +6,7 @@ Common
 Ocaml
 Haskell
 Scheme
+Sml
 Extract_env
 G_extraction
 Extraction_plugin_mod

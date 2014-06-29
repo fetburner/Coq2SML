@@ -569,6 +569,7 @@ let pp_global k r =
       | Scheme -> unquote s (* no modular Scheme extraction... *)
       | Haskell -> if modular () then pp_haskell_gen k mp rls else s
       | Ocaml -> pp_ocaml_gen k mp rls (Some l)
+      | Sml -> pp_ocaml_gen k mp rls (Some l)
 
 (* The next function is used only in Ocaml extraction...*)
 
@@ -594,7 +595,7 @@ let ind_ascii = mk_ind "Coq.Strings.Ascii" "ascii"
 let check_extract_ascii () =
   try
     let char_type = match lang () with
-      | Ocaml -> "char"
+      | Ocaml | Sml -> "char"
       | Haskell -> "Char"
       | _ -> raise Not_found
     in

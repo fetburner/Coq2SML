@@ -534,7 +534,7 @@ let _ = declare_int_option
 
 (*s Extraction Lang *)
 
-type lang = Ocaml | Haskell | Scheme
+type lang = Ocaml | Haskell | Scheme | Sml
 
 let lang_ref = ref Ocaml
 

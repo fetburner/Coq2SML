@@ -411,7 +411,7 @@ let pp_one_ind prefix ip_equiv pl name cnames ctyps =
   let pl = rename_tvars keywords pl in
   let pp_constructor i typs =
     (if i=0 then mt () else fnl ()) ++
-    hov 3 ((if i = 0 then str "" else str "| ") ++ cnames.(i) ++
+    hov 3 ((if i = 0 then str "  " else str "| ") ++ cnames.(i) ++
 	   (if typs = [] then mt () else str " of ") ++
 	   prlist_with_sep
 	    (fun () -> spc () ++ str "* ") (pp_type true pl) typs)

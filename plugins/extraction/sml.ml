@@ -335,8 +335,8 @@ and pp_pat env pv =
   prvecti
     (fun i x ->
        let s1,s2 = pp_one_pat env x in
-       hv 2 (hov 4 (s1 ++ str " =>") ++ spc () ++ hov 2 s2) ++
-       if i = Array.length pv - 1 then mt () else (str " |" ++ fnl ()))
+       hv 2 (hov 4 ((if i = 0 then str "  " else str "| ") ++ s1 ++ str " =>") ++ spc () ++ hov 2 s2) ++
+       if i = Array.length pv - 1 then mt () else fnl ())
     pv
 
 and pp_function env t =

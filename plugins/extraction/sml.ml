@@ -342,14 +342,6 @@ and pp_pat env pv =
 and pp_function env t =
   let bl,t' = collect_lams t in
   let bl,env' = push_vars (List.map id_of_mlid bl) env in
-  match t' with
-    | MLcase(Tglob(r,_),MLrel 1,pv) when
-	not (is_coinductive r) && get_record_fields r = [] &&
-	not (is_custom_match pv) ->
-          pr_binding (List.rev bl) ++
-          str " = case " ++ pr_id (List.hd bl) ++ str " of" ++ fnl () ++
-	  v 0 (pp_pat env' pv)
-    | _ ->
           pr_binding (List.rev bl) ++
 	  str " =" ++ fnl () ++ str "  " ++
 	  hov 2 (pp_expr false env' [] t')

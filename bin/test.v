@@ -45,6 +45,7 @@ Proof.
 Qed.
 
 Definition dec l := fold_left (fun a b => 10 * a + b) l 0.
+Definition rev_hex := fold_right (fun a b => a + 16 * b) 0.
 
 Extraction Language Sml.
 Extraction tree.
@@ -55,4 +56,4 @@ Extract Inductive nat => int ["0" "(fn n => n + 1)"]
 Extract Inlined Constant fold_left => "List.foldl".
 Extract Inlined Constant plus => "(fn x => fn y => x + y)".
 Extract Inlined Constant mult => "(fn x => fn y => x * y)".
-Extraction "test.sml" dfs dfs_aux dec.
+Extraction "test.sml" dfs dfs_aux dec rev_hex.

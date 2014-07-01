@@ -514,16 +514,16 @@ let pp_decl = function
 	in
 	hov 2 (str "datatype " ++ ids ++ name ++ spc () ++ def)
     | Dterm (r, a, t) ->
-	let def =
-	  if is_custom r then str (" = " ^ find_custom r)
+	let (isfun, def) =
+	  if is_custom r then (false, str (" = " ^ find_custom r))
 	  else if is_projection r then
-	    (prvect str (Array.make (projection_arity r) " _")) ++
-	    str " x = x."
-	  else pp_function (empty_env ()) a
+	    (false, (prvect str (Array.make (projection_arity r) " _")) ++
+	    str " x = x.")
+	  else (List.length (fst (collect_lams a)) <> 0, pp_function (empty_env ()) a)
 	in
 	let name = pp_global Term r in
 	let postdef = if is_projection r then name else mt () in
-	pp_val name t ++ hov 0 (str "val " ++ name ++ def ++ postdef)
+	pp_val name t ++ hov 0 (str (if isfun then "fun " else "val ") ++ name ++ def ++ postdef)
     | Dfix (rv,defs,typs) ->
 	pp_Dfix (rv,defs,typs)
 

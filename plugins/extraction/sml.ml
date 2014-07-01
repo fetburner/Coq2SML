@@ -32,7 +32,7 @@ let pp_tvar id =
 let pp_abst = function
   | [] -> mt ()
   | l  ->
-      str "fn " ++ prlist_with_sep (fun () -> str " ") pr_id l ++
+      str "fn " ++ prlist_with_sep (fun () -> str " => fn ") pr_id l ++
       str " =>" ++ spc ()
 
 let pp_parameters l =

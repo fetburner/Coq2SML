@@ -53,7 +53,6 @@ Extract Inductive list => "list" ["[]" "(::)"].
 Extract Inlined Constant app => "(fn x => fn y => x @ y)". 
 Extract Inductive nat => int ["0" "(fn n => n + 1)"]
   "(fun fO fS n -> if n = 0 then fO () else fS (n-1))".
-Extract Inlined Constant fold_left => "List.foldl".
 Extract Inlined Constant plus => "(fn x => fn y => x + y)".
 Extract Inlined Constant mult => "(fn x => fn y => x * y)".
-Extraction "test.sml" dfs dfs_aux dec rev_hex.
+Extraction "test.sml" dfs dfs' dec rev_hex.

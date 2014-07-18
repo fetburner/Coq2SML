@@ -53,7 +53,7 @@ let keywords =
     "else"; "end"; "exception"; "fn"; "fun"; "bandle"; "if";
     "in"; "infix"; "infixr"; "let"; "local"; "nonfix"; "of";
     "op"; "open"; "orelse"; "raise"; "rec"; "then";
-    "type"; "val"; "with"; "withtype"; "while"; "_" ]
+    "type"; "val"; "with"; "withtype"; "while"; "_"; "__" ]
   Idset.empty
 
 let pp_open mp = str ("open "^ string_of_modfile mp ^"\n")
@@ -378,13 +378,17 @@ let pp_Dfix (rv,c,t) =
       in
       if void then pp init (i+1)
       else
-	let def =
-	  if is_custom rv.(i) then str " = " ++ str (find_custom rv.(i))
-	  else pp_function (empty_env ()) c.(i)
+	let (isfun, def) =
+	  if is_custom rv.(i) then (false, str " = " ++ str (find_custom rv.(i)))
+	  else (List.length (fst (collect_lams c.(i))) <> 0, pp_function (empty_env ()) c.(i))
 	in
 	(if init then mt () else fnl2 ()) ++
 	pp_val names.(i) t.(i) ++
-	str (if init then "fun " else "and ") ++ names.(i) ++ def ++
+	str
+    (if init then
+       if isfun then "fun "
+       else "val "
+     else "and ") ++ names.(i) ++ def ++
 	pp false (i+1)
   in pp true 0
 

@@ -342,9 +342,9 @@ and pp_pat env pv =
 and pp_function env t =
   let bl,t' = collect_lams t in
   let bl,env' = push_vars (List.map id_of_mlid bl) env in
-          pr_binding (List.rev bl) ++
+          (List.length bl <> 0, pr_binding (List.rev bl) ++
 	  str " =" ++ fnl () ++ str "  " ++
-	  hov 2 (pp_expr false env' [] t')
+	  hov 2 (pp_expr false env' [] t'))
 
 (*s names of the functions ([ids]) are already pushed in [env],
     and passed here just for convenience. *)
@@ -354,7 +354,7 @@ and pp_fix par env i (ids,bl) args =
     (v 0 (str "fun " ++
 	  prvect_with_sep
       	    (fun () -> fnl () ++ str "and ")
-	    (fun (fi,ti) -> pr_id fi ++ pp_function env ti)
+	    (fun (fi,ti) -> pr_id fi ++ snd (pp_function env ti))
 	    (array_map2 (fun id b -> (id,b)) ids bl) ++
 	  fnl () ++
 	  hov 2 (str "in " ++ pp_apply (pr_id ids.(i)) false args)))
@@ -380,7 +380,7 @@ let pp_Dfix (rv,c,t) =
       else
 	let (isfun, def) =
 	  if is_custom rv.(i) then (false, str " = " ++ str (find_custom rv.(i)))
-	  else (List.length (fst (collect_lams c.(i))) <> 0, pp_function (empty_env ()) c.(i))
+	  else pp_function (empty_env ()) c.(i)
 	in
 	(if init then mt () else fnl2 ()) ++
 	pp_val names.(i) t.(i) ++
@@ -523,7 +523,7 @@ let pp_decl = function
 	  else if is_projection r then
 	    (false, (prvect str (Array.make (projection_arity r) " _")) ++
 	    str " x = x.")
-	  else (List.length (fst (collect_lams a)) <> 0, pp_function (empty_env ()) a)
+	  else pp_function (empty_env ()) a
 	in
 	let name = pp_global Term r in
 	let postdef = if is_projection r then name else mt () in

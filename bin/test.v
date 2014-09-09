@@ -44,6 +44,27 @@ Proof.
     congruence.
 Qed.
 
+Record point := { x : nat; y : nat }.
+Definition a := {| x := 5; y := 3 |}.
+
+Record pair (A B : Set) := { left : A; right : B }.
+
+Inductive itree : Set :=
+  | ileaf : nat -> itree
+  | inode : pair itree itree -> itree.
+
+Fixpoint iheight t :=
+  match t with
+  | ileaf _ => 0
+  | inode {| left := l; right := r |} => S (min (iheight l) (iheight r))
+  end.
+
+Fixpoint isize t :=
+  match t with
+  | ileaf _ => 1
+  | inode p => isize (left _ _ p) + isize (right _ _ p)
+  end.
+
 Definition dec l := fold_left (fun a b => 10 * a + b) l 0.
 Definition rev_hex := fold_right (fun a b => a + 16 * b) 0.
 
@@ -55,4 +76,4 @@ Extract Inductive nat => int ["0" "(fn n => n + 1)"]
   "(fun fO fS n -> if n = 0 then fO () else fS (n-1))".
 Extract Constant plus => "(fn x => fn y => x + y)".
 Extract Constant mult => "(fn x => fn y => x * y)".
-Extraction "test.sml" dfs dfs' dec rev_hex.
+Extraction "test.sml" dfs dfs' dec rev_hex a itree isize.

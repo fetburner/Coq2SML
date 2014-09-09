@@ -185,7 +185,7 @@ let rec pp_expr par env args =
 	(try
 	   let args = list_skipn (projection_arity r) args in
 	   let record = List.hd args in
-	   pp_apply (record ++ str "." ++ pp_global Term r) par (List.tl args)
+     pp_apply (pp_apply (str "#" ++ pp_global Term r) par [record]) par (List.tl args)
 	 with e when Errors.noncritical e -> apply (pp_global Term r))
     | MLfix (i,ids,defs) ->
 	let ids',env' = push_vars (List.rev (Array.to_list ids)) env in
@@ -286,13 +286,13 @@ and pp_record_proj par env typ t pv args =
   if is_infix r then raise Impossible;
   let env' = snd (push_vars (List.rev_map id_of_mlid ids) env) in
   let pp_args = (List.map (pp_expr true env' []) a) @ args in
-  let pp_head = pp_expr true env [] t ++ str "." ++ pp_field r fields idx
+  let pp_head = str "#" ++ pp_expr true env [] t ++ str " " ++ pp_field r fields idx
   in
   pp_apply pp_head par pp_args
 
 and pp_record_pat (fields, args) =
    str "{ " ++
-   prlist_with_sep (fun () -> str ";" ++ spc ())
+   prlist_with_sep (fun () -> str "," ++ spc ())
      (fun (f,a) -> f ++ str " =" ++ spc () ++ a)
      (List.combine fields args) ++
    str " }"
@@ -427,7 +427,7 @@ let pp_logical_ind packet =
 let pp_singleton kn packet =
   let name = pp_global Type (IndRef (kn,0)) in
   let l = rename_tvars keywords packet.ip_vars in
-  hov 2 (str "datatype " ++ pp_parameters l ++ name ++ str " =" ++ spc () ++
+  hov 2 (str "type " ++ pp_parameters l ++ name ++ str " =" ++ spc () ++
 	 pp_type false l (List.hd packet.ip_types.(0)) ++ fnl () ++
 	 pp_comment (str "singleton inductive, whose constructor was " ++
 		     pr_id packet.ip_consnames.(0)))
@@ -438,9 +438,9 @@ let pp_record kn fields ip_equiv packet =
   let fieldnames = pp_fields ind fields in
   let l = List.combine fieldnames packet.ip_types.(0) in
   let pl = rename_tvars keywords packet.ip_vars in
-  str "datatype " ++ pp_parameters pl ++ name ++
+  str "type " ++ pp_parameters pl ++ name ++
   pp_equiv pl name ip_equiv ++ str " = { "++
-  hov 0 (prlist_with_sep (fun () -> str ";" ++ spc ())
+  hov 0 (prlist_with_sep (fun () -> str "," ++ spc ())
 	   (fun (p,t) -> p ++ str " : " ++ pp_type true pl t) l)
   ++ str " }"
 
@@ -521,12 +521,12 @@ let pp_decl = function
 	let (isfun, def) =
 	  if is_custom r then (false, str (" = " ^ find_custom r))
 	  else if is_projection r then
-	    (false, (prvect str (Array.make (projection_arity r) " _")) ++
-	    str " x = x.")
+	    (true, (prvect str (Array.make (projection_arity r) " _")) ++
+	    str " x = #")
 	  else pp_function (empty_env ()) a
 	in
 	let name = pp_global Term r in
-	let postdef = if is_projection r then name else mt () in
+	let postdef = if is_projection r then name ++ str " x" else mt () in
 	pp_val name t ++ hov 0 (str (if isfun then "fun " else "val ") ++ name ++ def ++ postdef)
     | Dfix (rv,defs,typs) ->
 	pp_Dfix (rv,defs,typs)

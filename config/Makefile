@@ -24,8 +24,8 @@ COQTOOLSBYTEFLAGS=-custom
 # LIBDIR=path where the Coq library will reside
 # MANDIR=path where to install manual pages
 # EMACSDIR=path where to put Coq's Emacs mode (coq.el)
-BINDIR="/Users/Masayuki/Dropbox/coq/coq-8.4pl4/bin"
-COQLIBINSTALL="/Users/Masayuki/Dropbox/coq/coq-8.4pl4/"
+BINDIR="/Users/Masayuki/Documents/coq-8.4pl4/bin"
+COQLIBINSTALL="/Users/Masayuki/Documents/coq-8.4pl4/"
 CONFIGDIR="/etc/xdg/coq"
 DATADIR="/usr/local/share/coq"
 MANDIR="/usr/local/share/man"
@@ -34,7 +34,7 @@ EMACSLIB="/usr/local/share/emacs/site-lisp"
 EMACS=
 
 # Path to Coq distribution
-COQSRC="/Users/Masayuki/Dropbox/coq/coq-8.4pl4"
+COQSRC="/Users/Masayuki/Documents/coq-8.4pl4"
 VERSION=8.4pl4
 
 # Ocaml version number

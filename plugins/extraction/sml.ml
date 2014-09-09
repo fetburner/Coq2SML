@@ -521,8 +521,8 @@ let pp_decl = function
 	let (isfun, def) =
 	  if is_custom r then (false, str (" = " ^ find_custom r))
 	  else if is_projection r then
-	    (true, (prvect str (Array.make (projection_arity r) " _")) ++
-	    str " x = #")
+	    (false, (prvect str (Array.make (projection_arity r) " _")) ++
+      str " : " ++ pp_type false [] t ++ str " = fn x => #")
 	  else pp_function (empty_env ()) a
 	in
 	let name = pp_global Term r in

@@ -1,4 +1,4 @@
-Require Import List.
+Require Import List Arith.
 
 Inductive tree (A : Type) : Type :=
   | leaf : A -> tree A
@@ -56,7 +56,12 @@ Inductive itree : Set :=
 Fixpoint iheight t :=
   match t with
   | ileaf _ => 0
-  | inode {| left := l; right := r |} => S (min (iheight l) (iheight r))
+  | inode {| left := l; right := r |} =>
+      let lheight := iheight l in
+      let rheight := iheight r in
+      let succ x := S x in
+      if le_lt_dec lheight rheight then succ lheight
+      else succ rheight
   end.
 
 Fixpoint isize t :=
@@ -73,7 +78,9 @@ Extraction tree.
 Extract Inductive list => "list" ["[]" "(::)"].
 Extract Constant app => "(fn x => fn y => x @ y)". 
 Extract Inductive nat => int ["0" "(fn n => n + 1)"]
-  "(fun fO fS n -> if n = 0 then fO () else fS (n-1))".
+  "(fn fO => fn fS => fn n => if n = 0 then fO () else fS (n-1))".
+Extract Inductive sumbool => bool ["true" "false"].
 Extract Constant plus => "(fn x => fn y => x + y)".
 Extract Constant mult => "(fn x => fn y => x * y)".
-Extraction "test.sml" dfs dfs' dec rev_hex a itree isize.
+Extract Constant le_lt_dec => "(fn x => fn y => x <= y)".
+Extraction "test.sml" dfs dfs' dec rev_hex a itree isize iheight.

@@ -42,8 +42,8 @@ let pp_string_parameters l =
   (pp_boxed_tuple str l ++ space_if (l<>[]))
 
 let pp_letin pat def body =
-  let fstline = str "let " ++ pat ++ str " =" ++ spc () ++ def in
-  hv 0 (hv 0 (hov 2 fstline ++ spc () ++ str "in") ++ spc () ++ hov 0 body)
+  let fstline = str "let val " ++ pat ++ str " =" ++ spc () ++ def in
+  hv 0 (hv 0 (hov 2 fstline ++ spc () ++ str "in") ++ spc () ++ hov 0 body ++ spc () ++ str "end")
 
 (*s Ocaml renaming issues. *)
 

@@ -192,7 +192,7 @@ let rec pp_expr par env args =
 	pp_fix par env' i (Array.of_list (List.rev ids'),defs) args
     | MLexn s ->
 	(* An [MLexn] may be applied, but I don't really care. *)
-	pp_par par (str "assert false" ++ spc () ++ str ("(* "^s^" *)"))
+	pp_par par (str ("raise (Fail \""^s^"\")") ++ spc () ++ str ("(* "^s^" *)"))
     | MLdummy ->
 	str "__" (* An [MLdummy] may be applied, but I don't really care. *)
     | MLmagic a ->
@@ -516,7 +516,7 @@ let pp_decl = function
 	    if t = Taxiom then str "(* AXIOM TO BE REALIZED *)"
 	    else str "=" ++ spc () ++ pp_type false l t
 	in
-	hov 2 (str "datatype " ++ ids ++ name ++ spc () ++ def)
+	hov 2 (str "type " ++ ids ++ name ++ spc () ++ def)
     | Dterm (r, a, t) ->
 	let (isfun, def) =
 	  if is_custom r then (false, str (" = " ^ find_custom r))
@@ -588,7 +588,7 @@ let rec pp_specif = function
   | (l,Spec s) ->
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-	 hov 1 (str ("module "^ren^" : sig ") ++ fnl () ++ pp_spec s) ++
+	 hov 1 (str ("structure "^ren^" = struct ") ++ fnl () ++ pp_spec s) ++
 	 fnl () ++ str "end" ++ fnl () ++
 	 pp_alias_spec ren s
        with Not_found -> pp_spec s)
@@ -596,18 +596,18 @@ let rec pp_specif = function
       let def = pp_module_type [] mt in
       let def' = pp_module_type [] mt in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
-      hov 1 (str "module " ++ name ++ str " : " ++ fnl () ++ def) ++
+      hov 1 (str "structure " ++ name ++ str " = " ++ fnl () ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-	 fnl () ++ hov 1 (str ("module "^ren^" : ") ++ fnl () ++ def')
+	 fnl () ++ hov 1 (str ("structure "^ren^" = ") ++ fnl () ++ def')
        with Not_found -> Pp.mt ())
   | (l,Smodtype mt) ->
       let def = pp_module_type [] mt in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
-      hov 1 (str "module type " ++ name ++ str " = " ++ fnl () ++ def) ++
+      hov 1 (str "signature " ++ name ++ str " = " ++ fnl () ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-	 fnl () ++ str ("module type "^ren^" = ") ++ name
+	 fnl () ++ str ("signature "^ren^" = ") ++ name
        with Not_found -> Pp.mt ())
 
 and pp_module_type params = function
@@ -653,7 +653,7 @@ let rec pp_structure_elem = function
   | (l,SEdecl d) ->
        (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-	 hov 1 (str ("module "^ren^" = struct ") ++ fnl () ++ pp_decl d) ++
+	 hov 1 (str ("structure "^ren^" = struct ") ++ fnl () ++ pp_decl d) ++
 	 fnl () ++ str "end" ++ fnl () ++
 	 pp_alias_decl ren d
 	with Not_found -> pp_decl d)
@@ -667,19 +667,19 @@ let rec pp_structure_elem = function
       let def = pp_module_expr [] m.ml_mod_expr in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
       hov 1
-	(str "module " ++ name ++ typ ++ str " = " ++
+	(str "structure " ++ name ++ typ ++ str " = " ++
 	 (if (is_short m.ml_mod_expr) then mt () else fnl ()) ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-	 fnl () ++ str ("module "^ren^" = ") ++ name
+	 fnl () ++ str ("structure "^ren^" = ") ++ name
        with Not_found -> mt ())
   | (l,SEmodtype m) ->
       let def = pp_module_type [] m in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
-      hov 1 (str "module type " ++ name ++ str " = " ++ fnl () ++ def) ++
+      hov 1 (str "signature " ++ name ++ str " = " ++ fnl () ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-         fnl () ++ str ("module type "^ren^" = ") ++ name
+         fnl () ++ str ("signature "^ren^" = ") ++ name
        with Not_found -> mt ())
 
 and pp_module_expr params = function

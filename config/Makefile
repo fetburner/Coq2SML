@@ -25,7 +25,7 @@ COQTOOLSBYTEFLAGS=-custom
 # MANDIR=path where to install manual pages
 # EMACSDIR=path where to put Coq's Emacs mode (coq.el)
 BINDIR="/Users/Masayuki/Documents/coq-8.4pl4/bin"
-COQLIBINSTALL="/Users/Masayuki/Documents/coq-8.4pl4/"
+COQLIBINSTALL="/Users/Masayuki/Documents/coq-8.4pl4"
 CONFIGDIR="/etc/xdg/coq"
 DATADIR="/usr/local/share/coq"
 MANDIR="/usr/local/share/man"
@@ -41,19 +41,19 @@ VERSION=8.4pl4
 CAMLVERSION=OCAML401
 
 # Ocaml libraries
-CAMLLIB="/usr/local/lib/ocaml"
+CAMLLIB="/Users/Masayuki/.opam/4.01.0/lib/ocaml"
 
 # Ocaml .h directory
-CAMLHLIB="/usr/local/lib/ocaml"
+CAMLHLIB="/Users/Masayuki/.opam/4.01.0/lib/ocaml"
 
 # Camlp4 : flavor, binaries, libraries ...
 # NB : CAMLP4BIN can be empty if camlp4 is in the PATH
 # NB : avoid using CAMLP4LIB (conflict under Windows)
-CAMLP4BIN="/usr/local/bin"
+CAMLP4BIN="/Users/Masayuki/.opam/4.01.0/bin"
 CAMLP4=camlp5
 CAMLP4O=camlp5o
 CAMLP4COMPAT=-loc loc
-MYCAMLP4LIB="/usr/local/Cellar/camlp5/6.11/lib/ocaml/camlp5"
+MYCAMLP4LIB="/Users/Masayuki/.opam/4.01.0/lib/camlp5"
 
 # LablGTK
 COQIDEINCLUDES=

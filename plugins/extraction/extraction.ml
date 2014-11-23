@@ -356,7 +356,7 @@ and extract_ind env kn = (* kn is supposed to be in long form *)
        When at toplevel of the monolithic case, we cannot do much
        (cf Vector and bug #2570) *)
     let equiv =
-      if lang () <> Ocaml ||
+      if (lang () <> Ocaml && lang () <> Sml) ||
 	 (not (modular ()) && at_toplevel (mind_modpath kn)) ||
 	 kn_ord (canonical_mind kn) (user_mind kn) = 0
       then

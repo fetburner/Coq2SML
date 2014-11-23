@@ -325,7 +325,7 @@ let rec extract_sfb env mp all = function
 (* From [struct_expr_body] to implementations *)
 
 and extract_seb env mp all = function
-  | (SEBident _ | SEBapply _) as seb when lang () <> Ocaml ->
+  | (SEBident _ | SEBapply _) as seb when lang () <> Ocaml && lang () <> Sml ->
       (* in Haskell/Scheme, we expand everything *)
       extract_seb env mp all (expand_seb env mp seb)
   | SEBident mp ->

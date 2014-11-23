@@ -6,7 +6,7 @@
 (*         *       GNU Lesser General Public License Version 2.1        *)
 (************************************************************************)
 
-(*s Production of Ocaml syntax. *)
+(*s Production of Sml syntax. *)
 
 open Pp
 open Util
@@ -45,7 +45,7 @@ let pp_letin pat def body =
   let fstline = str "let val " ++ pat ++ str " =" ++ spc () ++ def in
   hv 0 (hv 0 (hov 2 fstline ++ spc () ++ str "in") ++ spc () ++ hov 0 body ++ spc () ++ str "end")
 
-(*s Ocaml renaming issues. *)
+(*s Sml renaming issues. *)
 
 let keywords =
   List.fold_right (fun s -> Idset.add (id_of_string s))
@@ -72,7 +72,7 @@ let sig_preamble _ used_modules usf =
   (if used_modules = [] then mt () else fnl ()) ++
   (if usf.tdummy || usf.tunknown then str "type __ = Obj.t\n\n" else mt())
 
-(*s The pretty-printer for Ocaml syntax*)
+(*s The pretty-printer for Sml syntax*)
 
 (* Beware of the side-effects of [pp_global] and [pp_modname].
    They are used to update table of content for modules. Many [let]
@@ -668,7 +668,7 @@ let rec pp_structure_elem = function
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
       hov 1
   (str (if isfunctor then "functor " else "structure ") ++ name ++ typ ++ str (if isfunctor then "" else " = ") ++
-	 (if (is_short m.ml_mod_expr) then mt () else fnl ()) ++ def) ++
+   (if (is_short m.ml_mod_expr) then mt () else fnl ()) ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
 	 fnl () ++ str ("structure "^ren^" = ") ++ name
@@ -689,8 +689,8 @@ and pp_module_expr params = function
   | MEfunctor (mbid, mt, me) ->
       let name = pp_modname (MPbound mbid) in
       let typ = pp_module_type [] mt in
-      let _, def = pp_module_expr (MPbound mbid :: params) me in
-      true, str " (" ++ name ++ str ":" ++ typ ++ str ") =" ++ fnl () ++ def
+      let isfunctor, def = pp_module_expr (MPbound mbid :: params) me in
+      true, str " (" ++ name ++ str ":" ++ typ ++ str ") " ++ str (if isfunctor then "" else " = ") ++ fnl () ++ def
   | MEstruct (mp, sel) ->
       push_visible mp params;
       let l = map_succeed pp_structure_elem sel in

@@ -53,7 +53,7 @@ let keywords =
     "else"; "end"; "exception"; "fn"; "fun"; "bandle"; "if";
     "in"; "infix"; "infixr"; "let"; "local"; "nonfix"; "of";
     "op"; "open"; "orelse"; "raise"; "rec"; "then";
-    "type"; "val"; "with"; "withtype"; "while"; "_"; "__" ]
+    "type"; "val"; "with"; "withtype"; "while"; "o"; "_"; "__" ]
   Idset.empty
 
 let pp_open mp = str ("open "^ string_of_modfile mp ^"\n")
@@ -351,13 +351,13 @@ and pp_function env t =
 
 and pp_fix par env i (ids,bl) args =
   pp_par par
-    (v 0 (str "fun " ++
+    (v 0 (str "let fun " ++
 	  prvect_with_sep
       	    (fun () -> fnl () ++ str "and ")
 	    (fun (fi,ti) -> pr_id fi ++ snd (pp_function env ti))
 	    (array_map2 (fun id b -> (id,b)) ids bl) ++
 	  fnl () ++
-	  hov 2 (str "in " ++ pp_apply (pr_id ids.(i)) false args)))
+    hov 2 (str "in " ++ pp_apply (pr_id ids.(i)) false args ++ str " end ")))
 
 let pp_val e typ =
   hov 4 (str "(** val " ++ e ++ str " :" ++ spc () ++ pp_type false [] typ ++
@@ -537,7 +537,7 @@ let pp_alias_decl ren = function
       let name = pp_global Type r in
       let l = rename_tvars keywords l in
       let ids = pp_parameters l in
-      hov 2 (str "datatype " ++ ids ++ name ++ str " =" ++ spc () ++ ids ++
+      hov 2 (str "type " ++ ids ++ name ++ str " =" ++ spc () ++ ids ++
 	     str (ren^".") ++ name)
   | Dterm (r, a, t) ->
       let name = pp_global Term r in
@@ -571,7 +571,7 @@ let pp_spec = function
 	    | Some Taxiom -> ids, str "(* AXIOM TO BE REALIZED *)"
 	    | Some t -> ids, str "=" ++ spc () ++ pp_type false l t
       in
-      hov 2 (str "datatype " ++ ids ++ name ++ spc () ++ def)
+      hov 2 (str "type " ++ ids ++ name ++ spc () ++ def)
 
 let pp_alias_spec ren = function
   | Sind (kn,i) -> pp_mind kn { i with ind_equiv = RenEquiv ren }
@@ -596,10 +596,10 @@ let rec pp_specif = function
       let def = pp_module_type [] mt in
       let def' = pp_module_type [] mt in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
-      hov 1 (str "structure " ++ name ++ str " = " ++ fnl () ++ def) ++
+      hov 1 (str "signature " ++ name ++ str " = " ++ fnl () ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
-	 fnl () ++ hov 1 (str ("structure "^ren^" = ") ++ fnl () ++ def')
+	 fnl () ++ hov 1 (str ("sig "^ren^" = ") ++ fnl () ++ def')
        with Not_found -> Pp.mt ())
   | (l,Smodtype mt) ->
       let def = pp_module_type [] mt in
@@ -643,7 +643,7 @@ and pp_module_type params = function
 	List.fold_left (fun mp id -> MPdot(mp,label_of_id id)) mp_mt idl
       in
       push_visible mp_mt [];
-      let pp_w = str " with module " ++ pp_modname mp_w in
+      let pp_w = str " and " ++ pp_modname mp_w in
       pop_visible ();
       pp_module_type [] mt ++ pp_w ++ str " = " ++ pp_modname mp
 
@@ -664,10 +664,10 @@ let rec pp_structure_elem = function
 	  str ": " ++ pp_module_type [] m.ml_mod_type
 	else mt ()
       in
-      let def = pp_module_expr [] m.ml_mod_expr in
+      let isfunctor, def = pp_module_expr [] m.ml_mod_expr in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
       hov 1
-	(str "structure " ++ name ++ typ ++ str " = " ++
+  (str (if isfunctor then "functor " else "structure ") ++ name ++ typ ++ str (if isfunctor then "" else " = ") ++
 	 (if (is_short m.ml_mod_expr) then mt () else fnl ()) ++ def) ++
       (try
 	 let ren = Common.check_duplicate (top_visible_mp ()) l in
@@ -683,19 +683,19 @@ let rec pp_structure_elem = function
        with Not_found -> mt ())
 
 and pp_module_expr params = function
-  | MEident mp -> pp_modname mp
+  | MEident mp -> false, pp_modname mp
   | MEapply (me, me') ->
-      pp_module_expr [] me ++ str "(" ++ pp_module_expr [] me' ++ str ")"
+      false, snd (pp_module_expr [] me) ++ str "(" ++ snd (pp_module_expr [] me') ++ str ")"
   | MEfunctor (mbid, mt, me) ->
       let name = pp_modname (MPbound mbid) in
       let typ = pp_module_type [] mt in
-      let def = pp_module_expr (MPbound mbid :: params) me in
-      str "functor (" ++ name ++ str ":" ++ typ ++ str ") ->" ++ fnl () ++ def
+      let _, def = pp_module_expr (MPbound mbid :: params) me in
+      true, str " (" ++ name ++ str ":" ++ typ ++ str ") =" ++ fnl () ++ def
   | MEstruct (mp, sel) ->
       push_visible mp params;
       let l = map_succeed pp_structure_elem sel in
       pop_visible ();
-      str "struct " ++ fnl () ++
+      false, str "struct " ++ fnl () ++
       v 1 (str " " ++ prlist_with_sep fnl2 identity l) ++
       fnl () ++ str "end"
 

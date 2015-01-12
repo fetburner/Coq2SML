@@ -50,10 +50,10 @@ let pp_letin pat def body =
 let keywords =
   List.fold_right (fun s -> Idset.add (id_of_string s))
   [ "abstype"; "and"; "andalso"; "as"; "case"; "datatype"; "do";
-    "else"; "end"; "exception"; "fn"; "fun"; "bandle"; "if";
+    "else"; "end"; "exception"; "div"; "fn"; "fun"; "bandle"; "if";
     "in"; "infix"; "infixr"; "let"; "local"; "nonfix"; "of";
-    "op"; "open"; "orelse"; "raise"; "rec"; "then";
-    "type"; "val"; "with"; "withtype"; "while"; "o"; "_"; "__" ]
+    "op"; "open"; "orelse"; "raise"; "rec"; "sig"; "then";
+    "type"; "val"; "with"; "withtype"; "while"; "o"; "_" ]
   Idset.empty
 
 let pp_open mp = str ("open "^ string_of_modfile mp ^"\n")
@@ -286,7 +286,7 @@ and pp_record_proj par env typ t pv args =
   if is_infix r then raise Impossible;
   let env' = snd (push_vars (List.rev_map id_of_mlid ids) env) in
   let pp_args = (List.map (pp_expr true env' []) a) @ args in
-  let pp_head = str "#" ++ pp_expr true env [] t ++ str " " ++ pp_field r fields idx
+  let pp_head = str "#" ++ pp_field r fields idx ++ str " " ++ pp_expr true env [] t
   in
   pp_apply pp_head par pp_args
 

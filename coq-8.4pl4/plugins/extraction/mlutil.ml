@@ -117,7 +117,7 @@ let put_magic_if b a = if b && lang () <> Scheme then MLmagic a else a
 let put_magic p a = if needs_magic p && lang () <> Scheme then MLmagic a else a
 
 let generalizable a =
-  lang () <> Ocaml ||
+  (lang () <> Ocaml && lang () <> Sml) ||
     match a with
       | MLapp _ -> false
       | _ -> true (* TODO, this is just an approximation for the moment *)

@@ -2,7 +2,7 @@
 
 let local = false
 let coqrunbyteflags = "-custom"
-let coqlib = Some "/Users/Masayuki/Documents/coq-8.4pl4"
+let coqlib = Some "/Users/Masayuki/Documents/Coq2SML/coq-8.4pl4"
 let configdir = None
 let datadir = None
 let docdir = "/usr/local/share/doc/coq"
@@ -32,8 +32,8 @@ let natdynlinkflag = "true"
 let osdeplibs = "-cclib -lunix"
 let version = "8.4pl4"
 let caml_version = "4.01.0"
-let date = "October 2014"
-let compile_date = "Oct 31 2014 01:13:24"
+let date = "January 2015"
+let compile_date = "Jan 11 2015 18:35:00"
 let vo_magic_number = 08400
 let state_magic_number = 58400
 let exec_extension = ""

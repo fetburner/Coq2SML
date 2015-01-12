@@ -309,7 +309,8 @@ let reset_renaming_tables flag =
 let modular_rename k id =
   let s = string_of_id id in
   let prefix,is_ok =
-    if upperkind k then "Coq_",is_upper else "coq_",is_lower
+    if upperkind k then "Coq_",is_upper
+    else "coq_",(fun s -> is_lower s && (lang () <> Sml || s.[0] <> '_'))
   in
   if not (is_ok s) ||
     (Idset.mem id (get_keywords ())) ||

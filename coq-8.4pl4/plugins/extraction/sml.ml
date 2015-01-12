@@ -53,7 +53,7 @@ let keywords =
     "else"; "end"; "exception"; "div"; "fn"; "fun"; "bandle"; "if";
     "in"; "infix"; "infixr"; "let"; "local"; "nonfix"; "of";
     "op"; "open"; "orelse"; "raise"; "rec"; "sig"; "then";
-    "type"; "val"; "with"; "withtype"; "while"; "o"; "_" ]
+    "type"; "val"; "with"; "withtype"; "while"; "o"; "_"; "coq___" ]
   Idset.empty
 
 let pp_open mp = str ("open "^ string_of_modfile mp ^"\n")
@@ -61,16 +61,16 @@ let pp_open mp = str ("open "^ string_of_modfile mp ^"\n")
 let preamble _ used_modules usf =
   prlist pp_open used_modules ++
   (if used_modules = [] then mt () else fnl ()) ++
-  (if usf.tdummy || usf.tunknown then str "type __ = Obj.t\n" else mt()) ++
+  (if usf.tdummy || usf.tunknown then str "type coq___ = int\n" else mt()) ++
   (if usf.mldummy then
-     str "let __ = let rec f _ = Obj.repr f in Obj.repr f\n"
+    str "val coq___ = 1\n"
    else mt ()) ++
   (if usf.tdummy || usf.tunknown || usf.mldummy then fnl () else mt ())
 
 let sig_preamble _ used_modules usf =
   prlist pp_open used_modules ++
   (if used_modules = [] then mt () else fnl ()) ++
-  (if usf.tdummy || usf.tunknown then str "type __ = Obj.t\n\n" else mt())
+  (if usf.tdummy || usf.tunknown then str "type coq___ = int\n" else mt())
 
 (*s The pretty-printer for Sml syntax*)
 
@@ -103,7 +103,7 @@ let get_ind = function
 
 let pp_one_field r i = function
   | Some r -> pp_global Term r
-  | None -> pp_global Type (get_ind r) ++ str "__" ++ int i
+  | None -> pp_global Type (get_ind r) ++ str "coq___" ++ int i
 
 let pp_field r fields i = pp_one_field r i (List.nth fields i)
 
@@ -129,8 +129,8 @@ let rec pp_type par vl t =
     | Tarr (t1,t2) ->
 	pp_par par
 	  (pp_rec true t1 ++ spc () ++ str "->" ++ spc () ++ pp_rec false t2)
-    | Tdummy _ -> str "__"
-    | Tunknown -> str "__"
+    | Tdummy _ -> str "coq___"
+    | Tunknown -> str "coq___"
   in
   hov 0 (pp_rec par t)
 
@@ -194,7 +194,7 @@ let rec pp_expr par env args =
 	(* An [MLexn] may be applied, but I don't really care. *)
 	pp_par par (str ("raise (Fail \""^s^"\")") ++ spc () ++ str ("(* "^s^" *)"))
     | MLdummy ->
-	str "__" (* An [MLdummy] may be applied, but I don't really care. *)
+	str "coq___" (* An [MLdummy] may be applied, but I don't really care. *)
     | MLmagic a ->
 	pp_apply (str "Unsafe.cast") par (pp_expr true env [] a :: args)
     | MLaxiom ->
@@ -447,11 +447,11 @@ let pp_record kn fields ip_equiv packet =
 let pp_coind pl name =
   let pl = rename_tvars keywords pl in
   pp_parameters pl ++ name ++ str " = " ++
-  pp_parameters pl ++ str "__" ++ name ++ str " Lazy.t" ++
+  pp_parameters pl ++ str "coq___" ++ name ++ str " Lazy.t" ++
   fnl() ++ str "and "
 
 let pp_ind co kn ind =
-  let prefix = if co then "__" else "" in
+  let prefix = if co then "coq___" else "" in
   let some = ref false in
   let init= ref (str "datatype ") in
   let names =

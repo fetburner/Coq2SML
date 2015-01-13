@@ -395,11 +395,11 @@ let pp_Dfix (rv,c,t) =
 (*s Pretty-printing of inductive types declaration. *)
 
 let pp_equiv param_list name = function
-  | NoEquiv, _ -> mt ()
+  | NoEquiv, _ -> mt (), false
   | Equiv kn, i ->
-      str " = " ++ pp_parameters param_list ++ pp_global Type (IndRef (mind_of_kn kn,i))
+      str " = datatype " ++ pp_parameters param_list ++ pp_global Type (IndRef (mind_of_kn kn,i)), true
   | RenEquiv ren, _  ->
-      str " = " ++ pp_parameters param_list ++ str (ren^".") ++ name
+      str " = datatype " ++ pp_parameters param_list ++ str (ren^".") ++ name, true
 
 let pp_comment s = str "(* " ++ s ++ str " *)"
 
@@ -412,8 +412,9 @@ let pp_one_ind prefix ip_equiv pl name cnames ctyps =
 	   prlist_with_sep
 	    (fun () -> spc () ++ str "* ") (pp_type true pl) typs)
   in
+  let pp_eq, is_rep = pp_equiv pl name ip_equiv in
   pp_parameters pl ++ str prefix ++ name ++
-  pp_equiv pl name ip_equiv ++ str " =" ++
+  pp_eq ++ if is_rep then mt () else str " =" ++
   if Array.length ctyps = 0 then str " unit (* empty inductive *)"
   else fnl () ++ v 0 (prvecti pp_constructor ctyps)
 
@@ -438,8 +439,9 @@ let pp_record kn fields ip_equiv packet =
   let fieldnames = pp_fields ind fields in
   let l = List.combine fieldnames packet.ip_types.(0) in
   let pl = rename_tvars keywords packet.ip_vars in
+  let pp_eq, is_rep = pp_equiv pl name ip_equiv in
   str "type " ++ pp_parameters pl ++ name ++
-  pp_equiv pl name ip_equiv ++ str " = { "++
+  pp_eq ++ if is_rep then mt () else str " = { "++
   hov 0 (prlist_with_sep (fun () -> str "," ++ spc ())
 	   (fun (p,t) -> p ++ str " : " ++ pp_type true pl t) l)
   ++ str " }"

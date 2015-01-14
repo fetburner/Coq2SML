@@ -652,7 +652,7 @@ and extract_cst_app env mle mlt kn args =
   (* Can we instantiate types variables for this constant ? *)
   (* In Ocaml, inside the definition of this constant, the answer is no. *)
   let instantiated =
-    if lang () = Ocaml && List.mem kn !current_fixpoints then var2var' (snd schema)
+    if (lang () = Ocaml || lang () = Sml) && List.mem kn !current_fixpoints then var2var' (snd schema)
     else instantiation schema
   in
   (* Then the expected type of this constant. *)
@@ -674,7 +674,7 @@ and extract_cst_app env mle mlt kn args =
   (* The ml arguments, already expunged from known logical ones *)
   let mla = make_mlargs env mle s args metas in
   let mla =
-    if magic1 || lang () <> Ocaml then mla
+    if magic1 || (lang () <> Ocaml && lang () <> Sml) then mla
     else
       try
         (* for better optimisations later, we discard dependent args
@@ -903,7 +903,7 @@ let extract_std_constant env kn body typ =
     let s,s' = list_chop n s in
     let k = sign_kind s in
     let empty_s = (k = EmptySig || k = SafeLogicalSig) in
-    if lang () = Ocaml && empty_s && not (gentypvar_ok c)
+    if (lang () = Ocaml || lang () = Sml) && empty_s && not (gentypvar_ok c)
       && s' <> [] && type_maxvar t <> 0
     then decomp_lams_eta_n (n+1) n env body typ
     else rels,c

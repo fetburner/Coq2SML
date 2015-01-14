@@ -110,13 +110,13 @@ let ind_iter_references do_term do_cons do_type kn ind =
   let cons_iter cp l = do_cons (ConstructRef cp); List.iter type_iter l in
   let packet_iter ip p =
     do_type (IndRef ip);
-    if lang () = Ocaml then
+    if lang () = Ocaml || lang () = Sml then
       (match ind.ind_equiv with
 	 | Miniml.Equiv kne -> do_type (IndRef (mind_of_kn kne, snd ip));
 	 | _ -> ());
     Array.iteri (fun j -> cons_iter (ip,j+1)) p.ip_types
   in
-  if lang () = Ocaml then record_iter_references do_term ind.ind_kind;
+  if lang () = Ocaml || lang () = Sml then record_iter_references do_term ind.ind_kind;
     Array.iteri (fun i -> packet_iter (kn,i)) ind.ind_packets
 
 let decl_iter_references do_term do_cons do_type =

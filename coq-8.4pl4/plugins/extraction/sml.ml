@@ -61,16 +61,16 @@ let pp_open mp = str ("open "^ string_of_modfile mp ^"\n")
 let preamble _ used_modules usf =
   prlist pp_open used_modules ++
   (if used_modules = [] then mt () else fnl ()) ++
-  (if usf.tdummy || usf.tunknown then str "type coq___ = int\n" else mt()) ++
+  (if usf.tdummy || usf.tunknown then str "type coq___ = unit\n" else mt()) ++
   (if usf.mldummy then
-    str "val coq___ = 1\n"
+    str "val coq___ = ()\n"
    else mt ()) ++
   (if usf.tdummy || usf.tunknown || usf.mldummy then fnl () else mt ())
 
 let sig_preamble _ used_modules usf =
   prlist pp_open used_modules ++
   (if used_modules = [] then mt () else fnl ()) ++
-  (if usf.tdummy || usf.tunknown then str "type coq___ = int\n" else mt())
+  (if usf.tdummy || usf.tunknown then str "type coq___ = unit\n" else mt())
 
 (*s The pretty-printer for Sml syntax*)
 

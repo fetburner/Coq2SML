@@ -652,6 +652,12 @@ and pp_module_type params = function
 
 let is_short = function MEident _ | MEapply _ -> true | _ -> false
 
+let rec collect_functors = function
+  | MEfunctor (mbid, mt, me) ->
+      let args, me' = collect_functors me in
+      ((mbid, mt) :: args, me')
+  | me -> [], me
+
 let rec pp_structure_elem = function
   | (l,SEdecl d) ->
        (try
@@ -667,11 +673,13 @@ let rec pp_structure_elem = function
           str ": " ++ pp_module_type [] m.ml_mod_type
         else mt ()
       in
-      let isfunctor, def = pp_module_expr [] m.ml_mod_expr in
+      let args, me = collect_functors m.ml_mod_expr in
+      let def = pp_module_expr [] me in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
+      let prefix = if args = [] then "structure " else "functor " in
       hov 1
-  (str (if isfunctor then "functor " else "structure ") ++ name ++ typ ++ str (if isfunctor then "" else " = ") ++
-   (if (is_short m.ml_mod_expr) then mt () else fnl ()) ++ def) ++
+      (str prefix ++ name ++ fnl () ++ pp_meargs args ++ typ ++ str " = " ++
+       (if is_short me then mt () else fnl ()) ++ def) ++
       (try
          let ren = Common.check_duplicate (top_visible_mp ()) l in
          fnl () ++ str ("structure "^ren^" = ") ++ name
@@ -685,20 +693,24 @@ let rec pp_structure_elem = function
          fnl () ++ str ("signature "^ren^" = ") ++ name
        with Not_found -> mt ())
 
+and pp_meargs args =
+  let pp_functor (mbid, mt) =
+    let name = pp_modname (MPbound mbid) in
+    let typ = pp_module_type [] mt in
+    str "(" ++ name ++ str ":" ++ typ ++ str ")" ++ fnl () in
+  List.fold_left ( ++ ) (mt ())
+    (List.map pp_functor args)
+
 and pp_module_expr params = function
-  | MEident mp -> false, pp_modname mp
+  | MEident mp -> pp_modname mp
   | MEapply (me, me') ->
-      false, snd (pp_module_expr [] me) ++ str "(" ++ snd (pp_module_expr [] me') ++ str ")"
-  | MEfunctor (mbid, mt, me) ->
-      let name = pp_modname (MPbound mbid) in
-      let typ = pp_module_type [] mt in
-      let isfunctor, def = pp_module_expr (MPbound mbid :: params) me in
-      true, str " (" ++ name ++ str ":" ++ typ ++ str ") " ++ str (if isfunctor then "" else " = ") ++ fnl () ++ def
+      pp_module_expr [] me ++ str "(" ++ pp_module_expr [] me' ++ str ")"
+  | MEfunctor (mbid, mt, me) -> failwith "pp_module_expr"
   | MEstruct (mp, sel) ->
       push_visible mp params;
       let l = map_succeed pp_structure_elem sel in
       pop_visible ();
-      false, str "struct " ++ fnl () ++
+      str "struct " ++ fnl () ++
       v 1 (str " " ++ prlist_with_sep fnl2 identity l) ++
       fnl () ++ str "end"
 
@@ -744,14 +756,14 @@ let rec pp_specif' = function
       let def' = pp_module_type' [] mt' in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
       let prefix = if args = [] then "structure " else "functor " in
-      hov 1 (str prefix ++ name ++ fnl () ++ pp_args args ++ str " = " ++ def) ++
+      hov 1 (str prefix ++ name ++ fnl () ++ pp_mtargs args ++ str " = " ++ def) ++
       (try
          let ren = Common.check_duplicate (top_visible_mp ()) l in
-         fnl () ++ hov 1 (str (prefix ^ ren) ++ pp_args args ++ str " = " ++ def')
+         fnl () ++ hov 1 (str (prefix ^ ren) ++ pp_mtargs args ++ str " = " ++ def')
        with Not_found -> Pp.mt ())
   | (l,Smodtype mt) -> push_module_type l mt; Pp.mt ()
 
-and pp_args args =
+and pp_mtargs args =
   let pp_funsig (mbid, mt) =
     let typ = pp_module_type'' [] mt in
     let name = pp_modname (MPbound mbid) in

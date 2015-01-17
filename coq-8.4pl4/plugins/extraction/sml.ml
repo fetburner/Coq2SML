@@ -723,6 +723,12 @@ let push_module_type, get_module_type =
   ((fun l mt -> env := (MPdot (top_visible_mp (), l), mt) :: !env),
    (fun kn -> List.assoc kn !env))
 
+let rec collect_funsigs = function
+  | MTfunsig (mbid, mt, mt') ->
+      let (args, modtype) = collect_funsigs mt' in
+      ((mbid, mt) :: args, modtype)
+  | mt -> ([], mt)
+
 let rec pp_specif' = function
   | (_,Spec (Sval _ as s)) -> pp_spec s
   | (l,Spec s) ->
@@ -733,29 +739,34 @@ let rec pp_specif' = function
          pp_alias_spec ren s
        with Not_found -> pp_spec s)
   | (l,Smodule mt) ->
-      let isfunctor, def = pp_module_type' [] mt in
-      let _, def' = pp_module_type' [] mt in
+      let args, mt' = collect_funsigs mt in
+      let def = pp_module_type' [] mt' in
+      let def' = pp_module_type' [] mt' in
       let name = pp_modname (MPdot (top_visible_mp (), l)) in
-      hov 1 (str (if isfunctor then "functor " else "structure ") ++ name ++ str (if isfunctor then "" else " = ") ++ fnl () ++ def) ++
+      let prefix = if args = [] then "structure " else "functor " in
+      hov 1 (str prefix ++ name ++ fnl () ++ pp_args args ++ str " = " ++ def) ++
       (try
          let ren = Common.check_duplicate (top_visible_mp ()) l in
-         fnl () ++ hov 1 (str ("struct "^ren^" = ") ++ fnl () ++ def')
+         fnl () ++ hov 1 (str (prefix ^ ren) ++ pp_args args ++ str " = " ++ def')
        with Not_found -> Pp.mt ())
   | (l,Smodtype mt) -> push_module_type l mt; Pp.mt ()
 
+and pp_args args =
+  let pp_funsig (mbid, mt) =
+    let typ = pp_module_type'' [] mt in
+    let name = pp_modname (MPbound mbid) in
+    str "(" ++ name ++ str ":" ++ typ ++ str ")" ++ fnl () in
+  List.fold_left ( ++ ) (mt ()) (List.map pp_funsig args)
+
 and pp_module_type' params = function
   | MTident kn ->
-      false, snd (pp_module_type' [] (get_module_type kn))
-  | MTfunsig (mbid, mt, mt') ->
-      let typ = pp_module_type'' [] mt in
-      let name = pp_modname (MPbound mbid) in
-      let isfunctor, def = pp_module_type' (MPbound mbid :: params) mt' in
-      true, str " (" ++ name ++ str ":" ++ typ ++ str ")" ++ str (if isfunctor then "" else " = ") ++ fnl () ++ def
+      pp_module_type' [] (get_module_type kn)
+  | MTfunsig (mbid, mt, mt') -> failwith "pp_module_type'"
   | MTsig (mp, sign) ->
       push_visible mp params;
       let l = map_succeed pp_specif' sign in
       pop_visible ();
-      false, str "struct " ++ fnl () ++
+      str "struct " ++ fnl () ++
       v 1 (str " " ++ prlist_with_sep fnl2 identity l) ++
         fnl () ++ str "end"
   | MTwith(mt,ML_With_type(idl,vl,typ)) ->
@@ -769,7 +780,7 @@ and pp_module_type' params = function
       push_visible mp_mt [];
       let pp_w = str " with type " ++ ids ++ pp_global Type r in
       pop_visible();
-      false, snd (pp_module_type' [] mt) ++ pp_w ++ str " = " ++ pp_type false vl typ
+      pp_module_type' [] mt ++ pp_w ++ str " = " ++ pp_type false vl typ
   | MTwith(mt,ML_With_module(idl,mp)) ->
       let mp_mt = msid_of_mt mt in
       let mp_w =
@@ -778,7 +789,7 @@ and pp_module_type' params = function
       push_visible mp_mt [];
       let pp_w = str " and " ++ pp_modname mp_w in
       pop_visible ();
-      false, snd (pp_module_type' [] mt) ++ pp_w ++ str " = " ++ pp_modname mp
+      pp_module_type' [] mt ++ pp_w ++ str " = " ++ pp_modname mp
 
 and pp_module_type'' params = function
   | MTident kn ->

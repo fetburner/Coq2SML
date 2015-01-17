@@ -68,6 +68,7 @@ let preamble _ used_modules usf =
   (if usf.tdummy || usf.tunknown || usf.mldummy then fnl () else mt ())
 
 let sig_preamble _ used_modules usf =
+  str "_require \"basis.smi\"\n\n" ++
   prlist pp_open used_modules ++
   (if used_modules = [] then mt () else fnl ()) ++
   (if usf.tdummy || usf.tunknown then str "type coq___ = unit\n" else mt())
@@ -717,7 +718,102 @@ let do_struct f s =
 
 let pp_struct s = do_struct pp_structure_elem s
 
-let pp_signature s = do_struct pp_specif s
+let push_module_type, get_module_type =
+  let env = ref [] in
+  ((fun l mt -> env := (MPdot (top_visible_mp (), l), mt) :: !env),
+   (fun kn -> List.assoc kn !env))
+
+let rec pp_specif' = function
+  | (_,Spec (Sval _ as s)) -> pp_spec s
+  | (l,Spec s) ->
+      (try
+         let ren = Common.check_duplicate (top_visible_mp ()) l in
+         hov 1 (str ("structure "^ren^" = struct ") ++ fnl () ++ pp_spec s) ++
+         fnl () ++ str "end" ++ fnl () ++
+         pp_alias_spec ren s
+       with Not_found -> pp_spec s)
+  | (l,Smodule mt) ->
+      let isfunctor, def = pp_module_type' [] mt in
+      let _, def' = pp_module_type' [] mt in
+      let name = pp_modname (MPdot (top_visible_mp (), l)) in
+      hov 1 (str (if isfunctor then "functor " else "structure ") ++ name ++ str (if isfunctor then "" else " = ") ++ fnl () ++ def) ++
+      (try
+         let ren = Common.check_duplicate (top_visible_mp ()) l in
+         fnl () ++ hov 1 (str ("struct "^ren^" = ") ++ fnl () ++ def')
+       with Not_found -> Pp.mt ())
+  | (l,Smodtype mt) -> push_module_type l mt; Pp.mt ()
+
+and pp_module_type' params = function
+  | MTident kn ->
+      false, snd (pp_module_type' [] (get_module_type kn))
+  | MTfunsig (mbid, mt, mt') ->
+      let typ = pp_module_type'' [] mt in
+      let name = pp_modname (MPbound mbid) in
+      let isfunctor, def = pp_module_type' (MPbound mbid :: params) mt' in
+      true, str " (" ++ name ++ str ":" ++ typ ++ str ")" ++ str (if isfunctor then "" else " = ") ++ fnl () ++ def
+  | MTsig (mp, sign) ->
+      push_visible mp params;
+      let l = map_succeed pp_specif' sign in
+      pop_visible ();
+      false, str "struct " ++ fnl () ++
+      v 1 (str " " ++ prlist_with_sep fnl2 identity l) ++
+        fnl () ++ str "end"
+  | MTwith(mt,ML_With_type(idl,vl,typ)) ->
+      let ids = pp_parameters (rename_tvars keywords vl) in
+      let mp_mt = msid_of_mt mt in
+      let l,idl' = list_sep_last idl in
+      let mp_w =
+        List.fold_left (fun mp l -> MPdot(mp,label_of_id l)) mp_mt idl'
+      in
+      let r = ConstRef (make_con mp_w empty_dirpath (label_of_id l)) in
+      push_visible mp_mt [];
+      let pp_w = str " with type " ++ ids ++ pp_global Type r in
+      pop_visible();
+      false, snd (pp_module_type' [] mt) ++ pp_w ++ str " = " ++ pp_type false vl typ
+  | MTwith(mt,ML_With_module(idl,mp)) ->
+      let mp_mt = msid_of_mt mt in
+      let mp_w =
+        List.fold_left (fun mp id -> MPdot(mp,label_of_id id)) mp_mt idl
+      in
+      push_visible mp_mt [];
+      let pp_w = str " and " ++ pp_modname mp_w in
+      pop_visible ();
+      false, snd (pp_module_type' [] mt) ++ pp_w ++ str " = " ++ pp_modname mp
+
+and pp_module_type'' params = function
+  | MTident kn ->
+      pp_module_type'' [] (get_module_type kn)
+  | MTfunsig (mbid, mt, mt') -> failwith "pp_module_type''"
+  | MTsig (mp, sign) ->
+      push_visible mp params;
+      let l = map_succeed pp_specif sign in
+      pop_visible ();
+      str "sig " ++ fnl () ++
+      v 1 (str " " ++ prlist_with_sep fnl2 identity l) ++
+        fnl () ++ str "end"
+  | MTwith(mt,ML_With_type(idl,vl,typ)) ->
+      let ids = pp_parameters (rename_tvars keywords vl) in
+      let mp_mt = msid_of_mt mt in
+      let l,idl' = list_sep_last idl in
+      let mp_w =
+        List.fold_left (fun mp l -> MPdot(mp,label_of_id l)) mp_mt idl'
+      in
+      let r = ConstRef (make_con mp_w empty_dirpath (label_of_id l)) in
+      push_visible mp_mt [];
+      let pp_w = str " with type " ++ ids ++ pp_global Type r in
+      pop_visible();
+      pp_module_type'' [] mt ++ pp_w ++ str " = " ++ pp_type false vl typ
+  | MTwith(mt,ML_With_module(idl,mp)) ->
+      let mp_mt = msid_of_mt mt in
+      let mp_w =
+        List.fold_left (fun mp id -> MPdot(mp,label_of_id id)) mp_mt idl
+      in
+      push_visible mp_mt [];
+      let pp_w = str " and " ++ pp_modname mp_w in
+      pop_visible ();
+      pp_module_type'' [] mt ++ pp_w ++ str " = " ++ pp_modname mp
+
+let pp_signature s = do_struct pp_specif' s
 
 let pp_decl d = try pp_decl d with Failure "empty phrase" -> mt ()
 
